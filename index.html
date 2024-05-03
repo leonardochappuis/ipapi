@@ -1,12 +1,94 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>WebGL Demo</title>
-    <script src="script.js" type="module"></script>
-  </head>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Real-time Connections Visualization</title>
+    <style>
+        #canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+    <script>
+        const socket = io('http://localhost:3000');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const serverCircle = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 20,
+            color: 'red'
+        };
+        const clientCircles = [];
 
-  <body>
-    <canvas id="glcanvas" width="640" height="480"></canvas>
-  </body>
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+
+        socket.on('connections', (connections) => {
+            clientCircles.length = 0;
+            for (let i = 0; i < connections.length; i++) {
+                const clientCircle = {
+                    x: Math.random() * (canvas.width - 20) + 10,
+                    y: Math.random() * (canvas.height - 20) + 10,
+                    radius: 5,
+                    color: getRandomColor()
+                };
+                clientCircles.push(clientCircle);
+            }
+            draw();
+        });
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawServerCircle();
+            drawClientCircles();
+        }
+
+        function drawServerCircle() {
+            ctx.beginPath();
+            ctx.arc(serverCircle.x, serverCircle.y, serverCircle.radius, 0, 2 * Math.PI);
+            ctx.fillStyle = serverCircle.color;
+            ctx.fill();
+        }
+
+        function drawClientCircles() {
+            for (let i = 0; i < clientCircles.length; i++) {
+                const clientCircle = clientCircles[i];
+                ctx.beginPath();
+                ctx.arc(clientCircle.x, clientCircle.y, clientCircle.radius, 0, 2 * Math.PI);
+                ctx.fillStyle = clientCircle.color;
+                ctx.fill();
+                drawLine(serverCircle.x, serverCircle.y, clientCircle.x, clientCircle.y);
+            }
+        }
+
+        function drawLine(x1, y1, x2, y2) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        draw();
+    </script>
+</body>
 </html>

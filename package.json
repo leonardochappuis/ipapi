@@ -11,7 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.19.2",
+    "http": "0.0.1-security",
+    "io": "^1.5.0",
     "ipapi": "^4.0.0",
+    "socket.io": "^4.7.5",
     "ws": "^8.17.0"
   }
 }
